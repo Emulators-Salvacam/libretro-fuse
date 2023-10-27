@@ -570,7 +570,7 @@ settings_command_line( settings_info *settings, int *first_arg,
   return 0;
 #endif
 
-#if !defined AMIGA && !defined __MORPHOS__
+#if !defined AMIGA && !defined __MORPHOS__ && !defined SF2000
 
   struct option long_options[] = {
 
@@ -616,7 +616,7 @@ print hashline( __LINE__ ), << 'CODE';
 
     int c;
 
-#if defined AMIGA || defined __MORPHOS__
+#if defined AMIGA || defined __MORPHOS__ || defined SF2000
     c = getopt( argc, argv, "d:hm:o:p:f:r:s:t:v:g:j:V" );
 #else                    /* #ifdef AMIGA */
     c = getopt_long( argc, argv, "d:hm:o:p:f:r:s:t:v:g:j:V", long_options, NULL );

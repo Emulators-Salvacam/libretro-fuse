@@ -1,4 +1,4 @@
-#if defined( __PS3__ )
+#if defined( __PS3__ ) || defined( SF2000 )
 
 #include <stddef.h>
 

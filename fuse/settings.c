@@ -2741,7 +2741,7 @@ read_config_file( settings_info *settings )
 
   /* See if the file exists; if doesn't, it's not a problem */
   if( stat( path, &stat_info ) ) {
-#if defined(VITA) || defined (__PS3__)
+#if defined(VITA) || defined (__PS3__) || defined (SF2000)
     return 0;
 #else
     if( errno == ENOENT ) {
@@ -4657,7 +4657,7 @@ settings_command_line( settings_info *settings, int *first_arg,
   return 0;
 #endif
 
-#if !defined AMIGA && !defined __MORPHOS__
+#if !defined AMIGA && !defined __MORPHOS__ && !defined SF2000
 
   struct option long_options[] = {
 

@@ -28,7 +28,7 @@
 
 #include <stdio.h>
 
-#ifndef VITA
+#if !defined(VITA) && !defined(SF2000)
 #include <dirent.h>
 #endif
 
@@ -137,7 +137,7 @@ typedef FILE* compat_fd;
 
 #if defined( GEKKO )
 typedef DIR_ITER* compat_dir;
-#elif defined( VITA )
+#elif defined( VITA ) || defined( SF2000 )
 typedef void* compat_dir;
 #else
 typedef DIR* compat_dir;

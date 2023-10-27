@@ -1264,7 +1264,7 @@ if1_mdr_write( int which, const char *filename )
 void
 if1_plug( const char *filename, int what )
 {
-#if defined(WIN32) || defined(__PS3__)
+#if defined(WIN32) || defined(__PS3__) || defined(SF2000)
   ui_error( UI_ERROR_ERROR, "Not yet implemented on Win32" );
   return; 
 #else

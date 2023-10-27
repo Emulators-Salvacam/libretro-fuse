@@ -2093,7 +2093,7 @@ disk_open2( disk_t *d, const char *filename, int preindex )
   libspectrum_id_t type;
   int error;
 
-#if defined(GEKKO) || defined(__PS3__) /* Wii/PS3 doesn't have access() */
+#if defined(GEKKO) || defined(__PS3__) || defined(SF2000) /* Wii/PS3 doesn't have access() */
   d->wrprot = 0;
 #else			/* #ifdef GEKKO/PS3 */
   if( access( filename, W_OK ) == -1 )		/* file read only */
