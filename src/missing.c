@@ -19,10 +19,12 @@ int chdir( const char* path)
   return 0;
 }
 
+#if !defined( SF2000 )
 int isatty(int fd)
 {
   (void)fd;
   return 1;
 }
+#endif
 
 #endif
