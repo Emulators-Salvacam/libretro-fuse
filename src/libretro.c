@@ -77,10 +77,139 @@ static const machine_t machine_list[] =
    { LIBSPECTRUM_MACHINE_SCORP,    "scorpion",     0 },
 };
 
+#define BGR16(color) rgb32_to_bgr16(color)
+#define rgb32_to_bgr16(color) rgbc32_to_bgr16((color & 0xFF0000) >> 16, (color & 0x00FF00) >> 8, (color & 0x0000FF))
+#define rgbc32_to_bgr16(red, green, blue) ((blue & 0b11111000) << 8) | ((green & 0b11111100) << 3) | (red >> 3)
+#define RGB16(color) rgb32_to_rgb16(color)
+#define rgb32_to_rgb16(color) rgbc32_to_rgb16((color & 0xFF0000) >> 16, (color & 0x00FF00) >> 8, (color & 0x0000FF))
+#define rgbc32_to_rgb16(red, green, blue) ((red & 0b11111000) << 8) | ((green & 0b11111100) << 3) | (blue >> 3)
+#define G3R3B2_TO_RGB565(color) \
+    ((((color >> 5) & 0x7) << 13) & 0x7C00) | \
+    ((((color >> 2) & 0x7) << 8) & 0x03E0) | \
+    (((((color & 0x3) << 1) | (((color & 0x3) & 0x1) | (((color & 0x3) >> 1) & 0x1))) << 2) & 0x001F)
+
+
+enum PALETTES {
+   PALETTE_FUSE = 0,
+   PALETTE_ZX_SPECTRUM_WIKIPEDIA,
+   PALETTE_BLACK_AND_WHITE_TV,
+   PALETTE_GREEN_MONOCHROME,
+   PALETTE_AMBAR_MONOCHROME,
+   PALETTE_C64,
+   PALETTE_CGA_4,
+   PALETTE_CGA_8,
+   PALETTE_CGA_16,
+   PALETTE_INVERTED,
+   PALETTE_COUNT
+};
+
+static uint16_t palettes[PALETTE_COUNT][16] = {
+   [PALETTE_FUSE] =  {
+      0x0000, 0x0018, 0xc000, 0xc018,
+      0x0600, 0x0618, 0xc600, 0xc618,
+      0x0000, 0x001f, 0xf800, 0xf81f,
+      0x07e0, 0x07ff, 0xffe0, 0xffff,
+   },
+   [PALETTE_ZX_SPECTRUM_WIKIPEDIA] = {
+      RGB16(0x000000),RGB16(0x0000D7),RGB16(0xD70000),RGB16(0xD700D7),
+      RGB16(0x00D700),RGB16(0x00D7D7),RGB16(0xD7D700),RGB16(0xD7D7D7),
+      RGB16(0x000000),RGB16(0x0000FF),RGB16(0xFF0000),RGB16(0xFF00FF),
+      RGB16(0x00FF00),RGB16(0x00FFFF),RGB16(0xFFFF00),RGB16(0xffffff),
+   },
+   [PALETTE_BLACK_AND_WHITE_TV] =  {
+      0x0000, 0x10a2, 0x39c7, 0x4a69,
+      0x738e, 0x8430, 0xad55, 0xbdf7,
+      0x0000, 0x18e3, 0x4a69, 0x6b4d,
+      0x94b2, 0xb596, 0xe71c, 0xffff,
+   },
+   [PALETTE_GREEN_MONOCHROME] = {  /* From ZX Spin */
+      rgbc32_to_rgb16(0,0,0), /* black */
+      rgbc32_to_rgb16(0,33,0), /* blue */
+      rgbc32_to_rgb16(0,62,0), /* red */
+      rgbc32_to_rgb16(0,85,0), /* magenta*/
+      rgbc32_to_rgb16(0,115,0), /* green*/
+      rgbc32_to_rgb16(0,136,0), /* cyan*/
+      rgbc32_to_rgb16(0,168,0), /* yellow*/
+      rgbc32_to_rgb16(0,181,0), /* white */
+      rgbc32_to_rgb16(0,0,0), /* bright black */
+      rgbc32_to_rgb16(0,52,0), /* bright blue */
+      rgbc32_to_rgb16(0,81,0), /* bright red */
+      rgbc32_to_rgb16(0,113,0), /* bright magenta*/
+      rgbc32_to_rgb16(0,154,0), /* bright green*/
+      rgbc32_to_rgb16(0,185,0), /* bright cyan*/
+      rgbc32_to_rgb16(0,237,0), /* bright yellow*/
+      rgbc32_to_rgb16(0,255,0)  /* bright white*/
+   },
+   [PALETTE_AMBAR_MONOCHROME] = {  /* From ZX Spin */
+      rgbc32_to_rgb16(0,0,0), /* black */
+      rgbc32_to_rgb16(34,24,0), /* blue */
+      rgbc32_to_rgb16(62,44,0), /* red */
+      rgbc32_to_rgb16(86,61,0), /* magenta*/
+      rgbc32_to_rgb16(116,82,0), /* green*/
+      rgbc32_to_rgb16(136,96,0), /* cyan*/
+      rgbc32_to_rgb16(168,119,0), /* yellow*/
+      rgbc32_to_rgb16(182,128,0), /* white */
+      rgbc32_to_rgb16(0,0,0), /* bright black */
+      rgbc32_to_rgb16(52,37,0), /* bright blue */
+      rgbc32_to_rgb16(82,58,0), /* bright red */
+      rgbc32_to_rgb16(114,80,0), /* bright magenta*/
+      rgbc32_to_rgb16(154,109,0), /* bright green*/
+      rgbc32_to_rgb16(186,131,0), /* bright cyan*/
+      rgbc32_to_rgb16(238,168,0), /* bright yellow*/
+      rgbc32_to_rgb16(255,180,1)  /* bright white*/
+   },
+   [PALETTE_C64] = {
+      RGB16(0x000000), /* black */
+      RGB16(0x40318D), /* blue */
+      RGB16(0x883932), /* red */
+      RGB16(0x8B5429), /* magenta*/
+      RGB16(0x55A049), /* green*/
+      RGB16(0x67B6BD), /* cyan*/
+      RGB16(0x574200), /* yellow*/
+      RGB16(0x9F9F9F), /* white */
+      RGB16(0x000000), /* bright black */
+      RGB16(0x7869C4), /* bright blue */
+      RGB16(0xB86962), /* bright red */
+      RGB16(0x8B5429), /* bright magenta*/
+      RGB16(0x94E089), /* bright green*/
+      RGB16(0x9F9F9F), /* bright cyan*/
+      RGB16(0xBFCE72), /* bright yellow*/
+      RGB16(0xFFFFFF), /* bright white*/
+   },
+   [PALETTE_CGA_4] = {
+      RGB16(0x000000),RGB16(0x55ffff),RGB16(0xff55ff),RGB16(0xff55ff),
+      RGB16(0x55ffff),RGB16(0x55ffff),RGB16(0xffffff),RGB16(0xffffff),
+      RGB16(0x000000),RGB16(0x55ffff),RGB16(0xff55ff),RGB16(0xff55ff),
+      RGB16(0x55ffff),RGB16(0x55ffff),RGB16(0xffffff),RGB16(0xffffff),
+   },
+   [PALETTE_CGA_8] = {
+      RGB16(0x000000),  RGB16(0xAAAA), RGB16(0xAA00AA), RGB16(0xAA00AA),
+      RGB16(0xAAAA),RGB16(0xAAAA),RGB16(0xAAAAAA),RGB16(0xAAAAAA),
+      RGB16(0x000000),RGB16(0x55ffff),RGB16(0xff55ff),RGB16(0xff55ff),
+      RGB16(0x55ffff),RGB16(0x55ffff),RGB16(0xffffff),RGB16(0xffffff),
+   },
+   [PALETTE_CGA_16] = {
+      RGB16(0x000000),  RGB16(0x0000AA), RGB16(0xAA0000), RGB16(0xAA00AA),
+      RGB16(0x00AA00),RGB16(0x00AAAA),RGB16(0xAA5500),RGB16(0xAAAAAA),
+      RGB16(0x000000),RGB16(0x5555FF),RGB16(0xFF5555),RGB16(0xFF55FF),
+      RGB16(0x55FF55),RGB16(0x55FFFF),RGB16(0xFFFF55),RGB16(0xffffff),
+   },
+   [PALETTE_INVERTED] = {
+      RGB16(0xffffff),RGB16(0xFEFF31),RGB16(0x30FEFF),RGB16(0x30FE31),
+      RGB16(0xFF30EA),RGB16(0xFE3030),RGB16(0x3030EA),RGB16(0x303030),
+      RGB16(0xffffff),RGB16(0xFDFF02),RGB16(0x00FDFE),RGB16(0x00FD02),
+      RGB16(0xFF00E3),RGB16(0xFD0000),RGB16(0xFD0000),RGB16(0x000000),
+   },
+};
+
 static int fuse_init_called = 0;
+static int forced_machine_at_init = 0;
+static int forced_machine_idx = 0;
+static int auto_size_savestate = 1;
 
 static unsigned msg_interface_version = 0;
 static int display_joystick_type;
+static int display_emulation_speed;
 
 static retro_video_refresh_t video_cb;
 static retro_input_poll_t input_poll_cb;
@@ -93,6 +222,7 @@ static int keyb_transparent;
 static const machine_t* machine;
 static double frame_time;
 static cheat_t* active_cheats;
+static int current_palette = PALETTE_FUSE;
 
 // allow access to variables declared here
 double total_time_ms;
@@ -112,13 +242,14 @@ int select_pressed;
 int keyb_overlay;
 unsigned keyb_x;
 unsigned keyb_y;
-bool joypad_state[MAX_PADS][16];
+bool joyp_state[MAX_PADS][16];
 bool keyb_state[RETROK_LAST];
 void*  snapshot_buffer;
 size_t snapshot_size;
 void* tape_data;
 size_t tape_size;
 int joymap[16];
+uint16_t *palette = palettes[PALETTE_FUSE];
 
 static const struct { unsigned x; unsigned y; } keyb_positions[4] = {
    { 32, 40 }, { 40, 88 }, { 48, 136 }, { 32, 184 }
@@ -275,7 +406,9 @@ keysyms_map_t keysyms_map[] = {
 static const struct retro_variable core_vars[] =
 {
    { "fuse_machine", "Model (needs content load); Spectrum 48K|Spectrum 48K (NTSC)|Spectrum 128K|Spectrum +2|Spectrum +2A|Spectrum +3|Spectrum +3e|Spectrum SE|Timex TC2048|Timex TC2068|Timex TS2068|Spectrum 16K|Pentagon 128K|Pentagon 512K|Pentagon 1024|Scorpion 256K" },
+   { "fuse_emulation_speed", "Emulation speed percentage (needs content load); 100|150|200|300|50"},
    { "fuse_size_border", "Size Video Border; full|medium|small|minimum|none" },
+   { "fuse_palette", "Colour Palette; Fuse Standard|ZX Standard|B&W TV|Green Monochrome|Ambar Monochrome|C64|CGA 4 colours|CGA 8 colours|CGA 16 colours|Inverted colours"},
    { "fuse_auto_load", "Tape Auto Load; enabled|disabled" },
    { "fuse_fast_load", "Tape Fast Load; enabled|disabled" },
    { "fuse_load_sound", "Tape Load Sound; enabled|disabled" },
@@ -283,6 +416,8 @@ static const struct retro_variable core_vars[] =
    { "fuse_ay_stereo_separation", "AY Stereo Separation; none|acb|abc" },
    { "fuse_key_ovrlay_transp", "Transparent Keyboard Overlay; enabled|disabled" },
    { "fuse_key_hold_time", "Time to Release Key in ms; 500|1000|100|300" },
+   { "fuse_display_joystick_type", "Display joystick type and emulation speed at startup; enabled|disabled" },
+   { "fuse_auto_size_savestate", "Use Auto Size for Savestates. For Netplay 'Off' is recommended; enabled|disabled" },
    { "fuse_joypad_left",    "Joypad Left mapping; " SPECTRUMKEYS },
    { "fuse_joypad_right",   "Joypad Right mapping; " SPECTRUMKEYS },
    { "fuse_joypad_up",      "Joypad Up mapping; " SPECTRUMKEYS },
@@ -335,6 +470,10 @@ int update_variables(int force)
       // Only change the machine when reloading content
       int option = coreopt(env_cb, core_vars, "fuse_machine", NULL);
       option += option < 0;
+
+      if (forced_machine_at_init)
+         option = forced_machine_idx;
+
       const machine_t *new_machine = machine_list + option;
 
       if (new_machine != machine || force)
@@ -346,14 +485,14 @@ int update_variables(int force)
 
          settings_current.start_machine = utils_safe_strdup(new_machine->fuse_id);
 
-         if (machine == NULL || new_machine->id == LIBSPECTRUM_MACHINE_48_NTSC || machine->id == LIBSPECTRUM_MACHINE_48_NTSC)
+         if (machine == NULL || new_machine->id == LIBSPECTRUM_MACHINE_48_NTSC || machine->id == LIBSPECTRUM_MACHINE_TS2068)
          {
             // region and fps change
             flags |= UPDATE_AV_INFO;
          }
 
          machine = new_machine;
-         frame_time = 1000.0 / ( machine->id == LIBSPECTRUM_MACHINE_48_NTSC ? 60.0 : 50.0 );
+         frame_time = 1000.0 / ( (machine->id == LIBSPECTRUM_MACHINE_48_NTSC|| machine->id == LIBSPECTRUM_MACHINE_TS2068) ? 60.0 : 50.0 );
          flags |= UPDATE_MACHINE;
       }
 
@@ -439,6 +578,25 @@ int update_variables(int force)
       }
    }
 
+   {
+      const char* value;
+      int option = coreopt(env_cb, core_vars, "fuse_emulation_speed", &value);
+      settings_current.emulation_speed = option >= 0 ? atoi(value) : 100;
+   }
+
+   {
+      int option = coreopt(env_cb, core_vars, "fuse_palette", NULL);
+      option += option < 0;
+      if (option>=0 && option<=PALETTE_COUNT-1 && current_palette!=option)
+      {
+         current_palette = option;
+         palette = palettes[current_palette];
+         display_refresh_all();
+      }
+         
+      
+   }
+
    settings_current.auto_load = coreopt(env_cb, core_vars, "fuse_auto_load", NULL) != 1;
 
    if (coreopt(env_cb, core_vars, "fuse_fast_load", NULL) == 0)
@@ -487,6 +645,21 @@ int update_variables(int force)
       int option = coreopt(env_cb, core_vars, "fuse_key_hold_time", &value);
       keyb_hold_time = option >= 0 ? strtoll(value, NULL, 10) * 1000LL : 500000LL;
    }
+
+
+   if (coreopt(env_cb, core_vars, "fuse_display_joystick_type", NULL) == 0)
+   {
+      display_joystick_type = TRUE;
+      display_emulation_speed = TRUE;
+   } else {
+      display_joystick_type = FALSE;
+      display_emulation_speed = FALSE;
+   }
+
+   if (coreopt(env_cb, core_vars, "fuse_auto_size_savestate", NULL) == 0)
+      auto_size_savestate = TRUE;
+   else
+      auto_size_savestate = FALSE;
 
    const char* value;
    int option = coreopt(env_cb, core_vars, "fuse_joypad_up", &value );
@@ -569,7 +742,7 @@ void retro_get_system_info(struct retro_system_info *info)
    info->library_version = version;
    info->need_fullpath = false;
    info->block_extract = false;
-   info->valid_extensions = "tzx|tap|z80|rzx|scl|trd|dsk|zip";
+   info->valid_extensions = "tzx|tap|z80|rzx|scl|trd|dsk|dck|sna|szx|zip";
 }
 
 void retro_set_environment(retro_environment_t cb)
@@ -595,10 +768,8 @@ void retro_set_environment(retro_environment_t cb)
       { NULL, 0 }
    };
 
-   // This seem to be broken right now, as info is NULL in retro_load_game
-   // even when we load a game via the frontend after booting to BASIC.
-   //bool yes = true;
-   //cb(RETRO_ENVIRONMENT_SET_SUPPORT_NO_GAME, (void*)&yes);
+   bool yes = true;
+   cb(RETRO_ENVIRONMENT_SET_SUPPORT_NO_GAME, &yes);
 
    cb(RETRO_ENVIRONMENT_SET_VARIABLES, (void*)core_vars);
    cb(RETRO_ENVIRONMENT_SET_CONTROLLER_INFO, (void*)ports);
@@ -631,60 +802,51 @@ void retro_init(void)
    retro_set_controller_port_device( 2, RETRO_DEVICE_SPECTRUM_KEYBOARD );
    
    display_joystick_type = FALSE;
+   display_emulation_speed = TRUE;
 }
 
-static libspectrum_id_t identify_file(const void* data, size_t size)
+static libspectrum_id_t identify_file(const char* filename, const void* data, size_t size)
 {
    libspectrum_id_t type;
-   libspectrum_error error = libspectrum_identify_file(&type, NULL, (const unsigned char*)data, size);
+   libspectrum_error error = libspectrum_identify_file(&type, filename, (const unsigned char*)data, size);
 
-   if (type != LIBSPECTRUM_ID_UNKNOWN)
-   {
+   if (error == LIBSPECTRUM_ERROR_NONE && type != LIBSPECTRUM_ID_UNKNOWN)
       return type;
-   }
-
-   libspectrum_snap* snap = libspectrum_snap_alloc();
-   error = libspectrum_snap_read(snap, (const libspectrum_byte*)data, size, LIBSPECTRUM_ID_SNAPSHOT_Z80, NULL);
-   libspectrum_snap_free(snap);
-
-   if (error == LIBSPECTRUM_ERROR_NONE)
-   {
-      return LIBSPECTRUM_ID_SNAPSHOT_Z80;
-   }
 
    // Default to TRD, we won't be able to load TRD files otherwise
    return LIBSPECTRUM_ID_DISK_TRD;
 }
 
-static libspectrum_id_t identify_file_get_ext(const void* data, size_t size, const char** ext)
+static libspectrum_id_t identify_file_get_ext(const char* filename, const void* data, size_t size, const char** ext)
 {
-   libspectrum_id_t type = identify_file(data, size);
+   libspectrum_id_t type = identify_file(filename, data, size);
 
    switch (type)
    {
-      case LIBSPECTRUM_ID_RECORDING_RZX: *ext = ".rzx"; break;
-      case LIBSPECTRUM_ID_SNAPSHOT_SNA:  *ext = ".sna"; break;
-      case LIBSPECTRUM_ID_SNAPSHOT_Z80:  *ext = ".z80"; break;
-      case LIBSPECTRUM_ID_TAPE_TAP:      // has same extension as LIBSPECTRUM_ID_TAPE_WARAJEVO
-      case LIBSPECTRUM_ID_TAPE_WARAJEVO: *ext = ".tap"; break;
-      case LIBSPECTRUM_ID_TAPE_TZX:      *ext = ".tzx"; break;
-      case LIBSPECTRUM_ID_SNAPSHOT_SP:   *ext = ".sp";  break;
-      case LIBSPECTRUM_ID_SNAPSHOT_SNP:  *ext = ".snp"; break;
-      case LIBSPECTRUM_ID_SNAPSHOT_ZXS:  *ext = ".zxs"; break;
-      case LIBSPECTRUM_ID_SNAPSHOT_SZX:  *ext = ".szx"; break;
-      case LIBSPECTRUM_ID_TAPE_CSW:      *ext = ".csw"; break;
-      case LIBSPECTRUM_ID_TAPE_Z80EM:    *ext = ".raw"; break;
-      case LIBSPECTRUM_ID_TAPE_WAV:      *ext = ".wav"; break;
-      case LIBSPECTRUM_ID_TAPE_SPC:      *ext = ".spc"; break;
-      case LIBSPECTRUM_ID_TAPE_STA:      *ext = ".sta"; break;
-      case LIBSPECTRUM_ID_TAPE_LTP:      *ext = ".ltp"; break;
-      case LIBSPECTRUM_ID_TAPE_PZX:      *ext = ".pzx"; break;
-      case LIBSPECTRUM_ID_DISK_SCL:      *ext = ".scl"; break;
-      case LIBSPECTRUM_ID_DISK_TRD:      *ext = ".trd"; break;
+      case LIBSPECTRUM_ID_RECORDING_RZX:  *ext = ".rzx"; break;
+      case LIBSPECTRUM_ID_SNAPSHOT_SNA:   *ext = ".sna"; break;
+      case LIBSPECTRUM_ID_SNAPSHOT_Z80:   *ext = ".z80"; break;
+      case LIBSPECTRUM_ID_TAPE_TAP:       // has same extension as LIBSPECTRUM_ID_TAPE_WARAJEVO
+      case LIBSPECTRUM_ID_TAPE_WARAJEVO:  *ext = ".tap"; break;
+      case LIBSPECTRUM_ID_TAPE_TZX:       *ext = ".tzx"; break;
+      case LIBSPECTRUM_ID_SNAPSHOT_SP:    *ext = ".sp";  break;
+      case LIBSPECTRUM_ID_SNAPSHOT_SNP:   *ext = ".snp"; break;
+      case LIBSPECTRUM_ID_SNAPSHOT_ZXS:   *ext = ".zxs"; break;
+      case LIBSPECTRUM_ID_SNAPSHOT_SZX:   *ext = ".szx"; break;
+      case LIBSPECTRUM_ID_TAPE_CSW:       *ext = ".csw"; break;
+      case LIBSPECTRUM_ID_TAPE_Z80EM:     *ext = ".raw"; break;
+      case LIBSPECTRUM_ID_TAPE_WAV:       *ext = ".wav"; break;
+      case LIBSPECTRUM_ID_TAPE_SPC:       *ext = ".spc"; break;
+      case LIBSPECTRUM_ID_TAPE_STA:       *ext = ".sta"; break;
+      case LIBSPECTRUM_ID_TAPE_LTP:       *ext = ".ltp"; break;
+      case LIBSPECTRUM_ID_TAPE_PZX:       *ext = ".pzx"; break;
+      case LIBSPECTRUM_ID_DISK_SCL:       *ext = ".scl"; break;
+      case LIBSPECTRUM_ID_DISK_TRD:       *ext = ".trd"; break;
       case LIBSPECTRUM_ID_DISK_DSK:
       case LIBSPECTRUM_ID_DISK_CPC:
-      case LIBSPECTRUM_ID_DISK_ECPC:     *ext = ".dsk"; break;
-      default:                           *ext = "";     break;
+      case LIBSPECTRUM_ID_DISK_ECPC:      *ext = ".dsk"; break;
+      case LIBSPECTRUM_ID_CARTRIDGE_DCK:  *ext = ".dck"; break;
+      default:                            *ext = "";     break;
    }
 
    return type;
@@ -709,7 +871,7 @@ bool retro_load_game(const struct retro_game_info *info)
    }
 
    env_cb(RETRO_ENVIRONMENT_SET_INPUT_DESCRIPTORS, input_descriptors);
-   memset(joypad_state, 0, sizeof(joypad_state));
+   memset(joyp_state, 0, sizeof(joyp_state));
    memset(keyb_state, 0, sizeof(keyb_state));
    hard_width = hard_height = soft_width = soft_height = 0;
    select_pressed = keyb_overlay = 0;
@@ -722,11 +884,24 @@ bool retro_load_game(const struct retro_game_info *info)
       "fuse",
    };
 
+   /* Special case TS2068 .dck */
+   /* We force TC2068 */
+   if (info && info->size != 0)
+   {
+      const char *ext_f = strrchr(info->path, '.');
+      if (ext_f != NULL && strcmp(ext_f, ".dck") == 0)
+      {
+         forced_machine_at_init = 1;
+         /* LIBSPECTRUM_MACHINE_TS2068 position in machine_list */
+         forced_machine_idx = 10;
+      }
+   }
+   
    fuse_init_called = 1;
 
    if (fuse_init(sizeof(argv) / sizeof(argv[0]), argv) == 0)
    {
-      if (info->size != 0)
+      if (info && info->size != 0)
       {
          tape_size = info->size;
          tape_data = malloc(tape_size);
@@ -741,9 +916,22 @@ bool retro_load_game(const struct retro_game_info *info)
          memcpy(tape_data, info->data, tape_size);
 
          const char* ext;
-         libspectrum_id_t type = identify_file_get_ext(tape_data, tape_size, &ext);
+         const char* filename_load_game = info->path;
+         libspectrum_id_t type;
          libspectrum_class_t class;
-         libspectrum_identify_class(&class, type);
+
+         
+         if (forced_machine_at_init && forced_machine_idx == 10)  /* LIBSPECTRUM_MACHINE_TS2068 position in machine_list */
+         {
+            type = LIBSPECTRUM_ID_CARTRIDGE_DCK;
+            class = LIBSPECTRUM_CLASS_CARTRIDGE_TIMEX;
+            ext = ".dck";
+         }
+         else 
+         {
+            type = identify_file_get_ext(filename_load_game, tape_data, tape_size, &ext);
+            libspectrum_identify_class(&class, type);
+         }
 
          char filename[32];
          snprintf(filename, sizeof(filename), "*%s", ext);
@@ -1036,11 +1224,24 @@ void retro_run(void)
 
    if (display_joystick_type == TRUE)
    {
-      char title[80];
-      snprintf( title, sizeof( title ), "Configure port 1 as %s joystick",
-         libspectrum_joystick_name( settings_current.joystick_1_output ));
-      Retro_Msg(title);
+      int port;
+      for (port = 0; port < MAX_PADS; port++) {
+         int joystick_type = get_joystick(input_devices[port]);
+         if (joystick_type != 0) {
+            char title[80];
+            snprintf(title, sizeof(title), "Port %d configured as %s joystick", port + 1,
+               libspectrum_joystick_name(joystick_type));
+            Retro_Msg(title);
+         }
+      }
       display_joystick_type = FALSE;
+   }
+
+   if (display_emulation_speed == TRUE) {
+      char title[80];
+      snprintf(title, sizeof(title), "Emulation speed configured to %d%%", settings_current.emulation_speed);
+      Retro_Msg(title);
+      display_emulation_speed = FALSE;
    }
 
    if (env_cb(RETRO_ENVIRONMENT_GET_VARIABLE_UPDATE, &updated) && updated)
@@ -1164,8 +1365,9 @@ void retro_set_controller_port_device(unsigned port, unsigned device)
 
 void retro_reset(void)
 {
+
    const char* ext;
-   libspectrum_id_t type = identify_file_get_ext(tape_data, tape_size, &ext);
+   libspectrum_id_t type = identify_file_get_ext(NULL, tape_data, tape_size, &ext);
 
    char filename[32];
    snprintf(filename, sizeof(filename), "*%s", ext);
@@ -1179,23 +1381,63 @@ void retro_reset(void)
 
 size_t retro_serialize_size(void)
 {
-   fuse_emulation_pause();
-   snapshot_write("dummy.szx"); // filename is only used to get the snapshot type
-   fuse_emulation_unpause();
-   return snapshot_size;
+   if (auto_size_savestate) {
+      fuse_emulation_pause();
+      snapshot_update();
+      fuse_emulation_unpause();
+      return snapshot_size;
+   }
+   else
+   {
+      /* Hack to keep all snapshots with a fixed size (double of normal snapshot size)*/
+      if (machine->id == LIBSPECTRUM_MACHINE_48       ||
+         machine->id == LIBSPECTRUM_MACHINE_48_NTSC   ||
+         machine->id == LIBSPECTRUM_MACHINE_TC2048    ||
+         machine->id == LIBSPECTRUM_MACHINE_16)
+         return 2 * 64 * 1024;
+      else if (machine->id == LIBSPECTRUM_MACHINE_128 ||
+         machine->id == LIBSPECTRUM_MACHINE_PLUS2     ||
+         machine->id == LIBSPECTRUM_MACHINE_PLUS2A    ||
+         machine->id == LIBSPECTRUM_MACHINE_PLUS3     ||
+         machine->id == LIBSPECTRUM_MACHINE_PLUS3E    ||
+         machine->id == LIBSPECTRUM_MACHINE_TC2068    ||
+         machine->id == LIBSPECTRUM_MACHINE_TS2068    ||
+         machine->id == LIBSPECTRUM_MACHINE_TS2068    ||
+         machine->id == LIBSPECTRUM_MACHINE_SE        ||
+         machine->id == LIBSPECTRUM_MACHINE_PENT)
+         return 2 * 128 * 1024;
+      else if (machine->id == LIBSPECTRUM_MACHINE_SCORP)
+         return 2 * 256 * 1024;
+      else if (machine->id == LIBSPECTRUM_MACHINE_PENT512)
+         return 2 * 512 * 1024;
+      else
+         return 2 * 1024 * 1024;
+   }
 }
 
 bool retro_serialize(void *data, size_t size)
 {
-   bool res = false;
+   snapshot_update();
 
-   if (size <= snapshot_size)
+   if (auto_size_savestate)
    {
-      memcpy(data, snapshot_buffer, snapshot_size);
-      res = true;
+      if (size <= snapshot_size)
+      {
+         memcpy(data, snapshot_buffer, snapshot_size);
+         return true;
+      }  
+      log_cb(RETRO_LOG_WARN, "Data size is not enough for snapshot\n");
+      return false;
    }
 
-   return res;
+   if (size < snapshot_size)
+   {
+      log_cb(RETRO_LOG_WARN, "Snapshot size is larger than fixed size\n");
+      return false;
+   }
+   memcpy(data, snapshot_buffer, snapshot_size);
+   memset(data + snapshot_size, 0xFF, size - snapshot_size);
+   return true;
 }
 
 bool retro_unserialize(const void *data, size_t size)

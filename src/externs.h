@@ -46,7 +46,7 @@ extern int select_pressed;
 extern int keyb_overlay;
 extern unsigned keyb_x;
 extern unsigned keyb_y;
-extern bool joypad_state[MAX_PADS][16];
+extern bool joyp_state[MAX_PADS][16];
 extern bool keyb_state[RETROK_LAST];
 extern void* snapshot_buffer;
 extern size_t snapshot_size;
@@ -54,6 +54,7 @@ extern void* tape_data;
 extern size_t tape_size;
 extern int joymap[16];
 extern keysyms_map_t keysyms_map[];
+extern uint16_t *palette;
 
 int update_variables(int);
 int fuse_ui_error_specific(ui_error_level, const char*);
@@ -68,6 +69,7 @@ void z80_do_opcodes(void);
 int event_do_events(void);
 int fuse_emulation_pause(void);
 int fuse_emulation_unpause(void);
+int snapshot_update(void);
 int snapshot_write(const char* filename);
 int snapshot_read_buffer(const unsigned char* buffer, size_t length, libspectrum_id_t type);
 
